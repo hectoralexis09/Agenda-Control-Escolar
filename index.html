@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Citas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eeeeee;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            background-color: #d62828;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .contenedor {
+            max-width: 900px;
+            margin: 20px auto;
+        }
+        .formulario {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px #999;
+        }
+        h2 {
+            color: #d62828;
+        }
+        label {
+            font-weight: bold;
+            color: #444;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #999;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .registrar {
+            width: 100%;
+            padding: 12px;
+            background-color: #f77f00;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .registrar:hover {
+            background-color: #d96500;
+        }
+        .buscador {
+            margin-top: 20px;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .buscador h2 {
+            color: white;
+        }
+        #buscar {
+            margin-bottom: 0;
+        }
+        .cita {
+            background-color: white;
+            margin-top: 15px;
+            padding: 15px;
+            border-left: 8px solid #f77f00;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px #aaa;
+        }
+        .cita h3 {
+            color: #d62828;
+            margin-top: 0;
+        }
+        .eliminar {
+            background-color: #d62828;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .eliminar:hover {
+            background-color: #a90000;
+        }
+        .sin-citas {
+            text-align: center;
+            color: #666;
+            background-color: white;
+            padding: 20px;
+            margin-top: 15px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SISTEMA DE GESTIÓN DE CITAS</h1>
+        <p>Control Escolar ITACE</p>
+    </header>
+    <div class="contenedor">
+        <!-- FORMULARIO -->
+        <div class="formulario">
+            <h2>Registrar nueva cita</h2>
+            <label>Nombre:</label>
+            <input type="text" id="nombre" placeholder="Nombre completo">
+            <label>Grupo:</label>
+            <input type="text" id="grupo" placeholder="Ejemplo: B">
+            <label>Grado:</label>
+            <input type="text" id="grado" placeholder="Ejemplo: 5">
+            <label>Especialidad:</label>
+            <input type="text" id="especialidad" placeholder="Ejemplo: Programación">
+            <label>Fecha:</label>
+            <input type="date" id="fecha">
+            <label>Hora:</label>
+            <input type="time" id="hora">
+            <button class="registrar" onclick="registrarCita()">
+                REGISTRAR CITA
+            </button>
+        </div>
+        <!-- BUSCADOR -->
+        <div class="buscador">
+            <h2>Buscar cita</h2>
+            <input
+                type="text"
+                id="buscar"
+                placeholder="Escribe el nombre para buscar..."
+                onkeyup="mostrarCitas()"
+            >
+        </div>
+        <!-- LISTA DE CITAS -->
+        <div id="listaCitas"></div>
+    </div>
+    <script>
+        // ==========================================
+        // CARGAR CITAS GUARDADAS
+        // ==========================================
+        let citas = JSON.parse(localStorage.getItem("citas")) || [];
+        // ==========================================
+        // REGISTRAR CITA
+        // ==========================================
+        function registrarCita() {
+            let nombre = document.getElementById("nombre").value;
+            let grupo = document.getElementById("grupo").value;
+            let grado = document.getElementById("grado").value;
+            let especialidad = document.getElementById("especialidad").value;
+            let fecha = document.getElementById("fecha").value;
+            let hora = document.getElementById("hora").value;
+            // Comprobar campos
+            if (
+                nombre === "" ||
+                grupo === "" ||
+                grado === "" ||
+                especialidad === "" ||
+                fecha === "" ||
+                hora === ""
+            ) {
+                alert("Por favor, completa todos los campos.");
+                return;
+            }
+            // Crear cita
+            let nuevaCita = {
+                id: Date.now(),
+                nombre: nombre,
+                grupo: grupo,
+                grado: grado,
+                especialidad: especialidad,
+                fecha: fecha,
+                hora: hora
+            };
+            // Guardar cita
+            citas.push(nuevaCita);
+            localStorage.setItem(
+                "citas",
+                JSON.stringify(citas)
+            );
+            // Limpiar formulario
+            document.getElementById("nombre").value = "";
+            document.getElementById("grupo").value = "";
+            document.getElementById("grado").value = "";
+            document.getElementById("especialidad").value = "";
+            document.getElementById("fecha").value = "";
+            document.getElementById("hora").value = "";
+            alert("¡Cita registrada correctamente!");
+            mostrarCitas();
+        }
+        // ==========================================
+        // MOSTRAR CITAS
+        // ==========================================
+        function mostrarCitas() {
+            let lista = document.getElementById("listaCitas");
+            let textoBuscar =
+                document.getElementById("buscar").value.toLowerCase();
+            lista.innerHTML = "";
+            // Filtrar citas
+            let resultados = citas.filter(function(cita) {
+                return cita.nombre
+                    .toLowerCase()
+                    .includes(textoBuscar);
+            });
+            // Si no existen citas
+            if (resultados.length === 0) {
+                lista.innerHTML = `
+                    <div class="sin-citas">
+                        No se encontraron citas.
+                    </div>
+                `;
+                return;
+            }
+            // Mostrar citas
+            resultados.forEach(function(cita) {
+                lista.innerHTML += `
+                    <div class="cita">
+                        <h3>${cita.nombre}</h3>
+                        <p>
+                            <strong>Grupo:</strong>
+                            ${cita.grupo}
+                        </p>
+                        <p>
+                            <strong>Grado:</strong>
+                            ${cita.grado}
+                        </p>
+                        <p>
+                            <strong>Especialidad:</strong>
+                            ${cita.especialidad}
+                        </p>
+                        <p>
+                            <strong>Fecha:</strong>
+                            ${cita.fecha}
+                        </p>
+                        <p>
+                            <strong>Hora:</strong>
+                            ${cita.hora}
+                        </p>
+                        <button
+                            class="eliminar"
+                            onclick="eliminarCita(${cita.id})"
+                        >
+                            ELIMINAR CITA
+                        </button>
+                    </div>
+                `;
+            });
+        }
+        // ==========================================
+        // ELIMINAR CITA
+        // ==========================================
+        function eliminarCita(id) {
+            let confirmar =
+                confirm("¿Seguro que deseas eliminar esta cita?");
+            if (confirmar) {
+                citas = citas.filter(function(cita) {
+                    return cita.id !== id;
+                });
+                localStorage.setItem(
+                    "citas",
+                    JSON.stringify(citas)
+                );
+                mostrarCitas();
+            }
+        }
+        // ==========================================
+        // MOSTRAR AL ABRIR LA PÁGINA
+        // ==========================================
+        mostrarCitas();
+    </script>
+</body>
+</html>
